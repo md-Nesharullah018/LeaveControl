@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
@@ -15,30 +16,37 @@ export default function LeaveConfigurationPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-const handleSaveConfiguration = async () => {
-  try {
-    setIsLoading(true);
+  // ✅ FIX 1: ADD STATE FOR DATA
+  const [data, setData] = useState([]);
 
-    // actual save logic
-    localStorage.setItem("leaveTypes", JSON.stringify(data));
+  // optional: receive data from child via callback later if needed
 
-    alert("Configuration saved successfully!");
+  const handleSaveConfiguration = async () => {
+    try {
+      setIsLoading(true);
 
-  } catch (error) {
-    console.error(error);
-    alert("Save failed!");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      await new Promise((res) => setTimeout(res, 800));
 
-const handleCancel = () => {
-  window.location.reload();
-};
+      // ✅ FIX 2: now data exists
+      localStorage.setItem("leaveTypes", JSON.stringify(data));
+
+      alert("Configuration saved successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("Save failed!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    window.location.reload();
+  };
 
   return (
     <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
 
+      {/* Sidebar */}
       <div
         className={`
           fixed inset-y-0 left-0 z-50 w-64 h-screen bg-slate-900 border-r border-slate-800
@@ -49,6 +57,7 @@ const handleCancel = () => {
         <Sidebar />
       </div>
 
+      {/* Main */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
@@ -62,6 +71,7 @@ const handleCancel = () => {
 
             <div className="grid grid-cols-12 gap-8">
 
+              {/* Sidebar menu */}
               <div className="col-span-12 xl:col-span-2 space-y-6">
                 <Card className="p-2 border-slate-200 shadow-sm bg-white">
                   {[
@@ -83,42 +93,36 @@ const handleCancel = () => {
                     </button>
                   ))}
                 </Card>
-
-                <Card className="p-6 border-slate-200 shadow-sm bg-white">
-                  <h3 className="font-bold text-slate-900 mb-3 text-sm">
-                    About Leave Configuration
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Configure leave rules, balances and policies for outlet
-                    staff. These settings will be used to calculate and manage
-                    leave requests.
-                  </p>
-                </Card>
               </div>
 
+              {/* Content */}
               <div className="col-span-12 xl:col-span-10 space-y-8">
+
                 <BasicConfiguration />
 
-                <LeaveTypesTable />
+                {/* IMPORTANT: pass setter to table */}
+                <LeaveTypesTable setData={setData} />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <GeneralRules />
                   <ApprovalRules />
                 </div>
 
-                <div className="flex items-center justify-end gap-4 pt-6">
+                <div className="flex justify-end pt-6">
                   <FooterActions
                     onSave={handleSaveConfiguration}
                     onCancel={handleCancel}
                     isLoading={isLoading}
                   />
                 </div>
+
               </div>
             </div>
           </div>
         </div>
       </main>
 
+      {/* overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"

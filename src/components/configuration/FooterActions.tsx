@@ -8,10 +8,14 @@ export default function FooterActions({ onSave, isLoading, onCancel }) {
 
   const handleSave = async () => {
     try {
-      await onSave?.();
-      toast.success("Configuration saved successfully ");
+      if (!onSave) return;
+
+      await onSave(); // parent handles actual save
+
+      toast.success("Configuration saved successfully");
     } catch (error) {
-      toast.error("Failed to save configuration ");
+      console.error(error);
+      toast.error("Failed to save configuration");
     }
   };
 
@@ -20,6 +24,7 @@ export default function FooterActions({ onSave, isLoading, onCancel }) {
       onCancel?.();
       toast("Action cancelled");
     } catch (error) {
+      console.error(error);
       toast.error("Cancel failed");
     }
   };
