@@ -15,21 +15,25 @@ export default function LeaveConfigurationPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSaveConfiguration = () => {
+const handleSaveConfiguration = async () => {
+  try {
     setIsLoading(true);
 
-    if (window.handleLeaveTypeSave) {
-      window.handleLeaveTypeSave();
-    }
+    await handleLeaveTypeSave?.();
+
 
     setTimeout(() => {
       setIsLoading(false);
     }, 800);
-  };
+  } catch (error) {
+    console.error(error);
+    setIsLoading(false);
+  }
+};
 
-  const handleCancel = () => {
-    window.location.reload();
-  };
+const handleCancel = () => {
+  window.location.reload();
+};
 
   return (
     <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
