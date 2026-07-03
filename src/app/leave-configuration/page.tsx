@@ -19,14 +19,15 @@ const handleSaveConfiguration = async () => {
   try {
     setIsLoading(true);
 
-    await handleLeaveTypeSave?.();
+    // actual save logic
+    localStorage.setItem("leaveTypes", JSON.stringify(data));
 
+    alert("Configuration saved successfully!");
 
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
   } catch (error) {
     console.error(error);
+    alert("Save failed!");
+  } finally {
     setIsLoading(false);
   }
 };
