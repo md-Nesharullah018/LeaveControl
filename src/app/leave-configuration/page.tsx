@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
@@ -16,37 +15,27 @@ import ApprovalRules from "@/components/configuration/ApprovalRules";
 import FooterActions from "@/components/configuration/FooterActions";
 
 /* ================= TYPE ================= */
-type LeaveType = {
-  id: string;
-  name: string;
-  shortCode: string;
-  entitlement: number;
-  maxCarry: number;
-  carryEnabled: boolean;
-};
+
 
 export default function LeaveConfigurationPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [data, setData] = useState<LeaveType[]>([]);
 
-  const handleSaveConfiguration = async () => {
-    try {
-      setIsLoading(true);
+const handleSaveConfiguration = async () => {
+  try {
+    setIsLoading(true);
 
-      await new Promise((res) => setTimeout(res, 800));
+    await new Promise((res) => setTimeout(res, 800));
 
-      localStorage.setItem("leaveTypes", JSON.stringify(data));
-
-      alert("Configuration saved successfully!");
-    } catch (error) {
-      console.error(error);
-      alert("Save failed!");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    alert("Configuration saved successfully!");
+  } catch (error) {
+    console.error(error);
+    alert("Save failed!");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleCancel = () => {
     window.location.reload();
@@ -114,16 +103,7 @@ export default function LeaveConfigurationPage() {
                     Configure leave rules, balances and policies for outlet staff.
                     These settings will be used to calculate and manage leave requests.
                   </p>
-
-                  <div className="flex justify-center pt-2">
-                    <Image
-                      src="/calendar-illustration.png"
-                      alt="Leave Config"
-                      width={140}
-                      height={140}
-                      className="opacity-90"
-                    />
-                  </div>
+                  
                 </Card>
 
               </div>
@@ -133,7 +113,7 @@ export default function LeaveConfigurationPage() {
 
                 <BasicConfiguration />
 
-                <LeaveTypesTable data={data} setData={setData} />
+                <LeaveTypesTable />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <GeneralRules />
