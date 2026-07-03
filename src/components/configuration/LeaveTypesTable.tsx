@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,39 +7,72 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, Check, Loader2, Save } from "lucide-react";
 
-const CustomToggle = ({ checked, onChange }) => (
+/* ================= TYPES ================= */
+type LeaveType = {
+  id: string;
+  name: string;
+  shortCode: string;
+  entitlement: number;
+  maxCarry: number;
+  carryEnabled: boolean;
+};
+
+type FormDataType = {
+  name: string;
+  shortCode: string;
+  entitlement: string;
+  maxCarry: string;
+};
+
+/* ================= TOGGLE ================= */
+const CustomToggle = ({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: () => void;
+}) => (
   <button
     onClick={onChange}
-    className={`w-12 h-6 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
+    className={`w-12 h-6 rounded-full p-1 flex items-center transition ${
       checked ? "bg-blue-600" : "bg-slate-300"
     }`}
   >
     <div
-      className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 shadow-sm ${
+      className={`w-4 h-4 bg-white rounded-full transition-transform ${
         checked ? "translate-x-6" : "translate-x-0"
       }`}
     />
   </button>
 );
 
+/* ================= PAGE ================= */
 export default function LeaveManagementPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<LeaveType[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     name: "",
     shortCode: "",
     entitlement: "",
     maxCarry: "0",
   });
 
+  /* ================= INIT (SAFE LOCALSTORAGE) ================= */
   useEffect(() => {
-    const savedData = localStorage.getItem("leaveTypes");
+    if (typeof window === "undefined") return;
 
-    if (savedData) {
-      setData(JSON.parse(savedData));
+    const saved = localStorage.getItem("leaveTypes");
+
+    if (saved) {
+      try {
+        const parsed: LeaveType[] = JSON.parse(saved);
+        setData(parsed);
+      } catch {
+        setData([]);
+      }
     } else {
       setData([
         {
@@ -53,32 +87,34 @@ export default function LeaveManagementPage() {
     }
   }, []);
 
-  // ✅ FIXED SAVE FUNCTION
+  /* ================= AUTO SYNC (IMPORTANT FIX) ================= */
+  useEffect(() => {
+    localStorage.setItem("leaveTypes", JSON.stringify(data));
+  }, [data]);
+
+  /* ================= SAVE CONFIG ================= */
   const handleSaveConfiguration = async () => {
     try {
       setIsLoading(true);
 
-      await new Promise((res) => setTimeout(res, 800));
-
-      localStorage.setItem("leaveTypes", JSON.stringify(data));
+      await new Promise((r) => setTimeout(r, 800));
 
       toast.success("Configuration saved successfully");
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
       toast.error("Failed to save configuration");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ✅ ADD FIXED
+  /* ================= ADD ================= */
   const handleAdd = () => {
     if (!formData.name.trim()) {
       toast.error("Leave Name is required");
       return;
     }
 
-    const newEntry = {
+    const newItem: LeaveType = {
       id: Date.now().toString(),
       name: formData.name,
       shortCode: formData.shortCode,
@@ -87,9 +123,7 @@ export default function LeaveManagementPage() {
       carryEnabled: false,
     };
 
-    const updated = [...data, newEntry];
-    setData(updated);
-    localStorage.setItem("leaveTypes", JSON.stringify(updated));
+    setData((prev) => [...prev, newItem]);
 
     setFormData({
       name: "",
@@ -99,22 +133,31 @@ export default function LeaveManagementPage() {
     });
 
     setIsModalOpen(false);
-
-    toast.success("Leave type added successfully");
+    toast.success("Leave type added");
   };
 
-  // ✅ DELETE FIX
-  const handleDelete = (id) => {
-    const updated = data.filter((i) => i.id !== id);
-    setData(updated);
-    localStorage.setItem("leaveTypes", JSON.stringify(updated));
+  /* ================= UPDATE FIELD ================= */
+  const updateField = (id: string, field: keyof LeaveType, value: any) => {
+    setData((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  /* ================= DELETE ================= */
+  const handleDelete = (id: string) => {
+    setData((prev) => prev.filter((i) => i.id !== id));
     toast.success("Deleted successfully");
   };
 
+  /* ================= UI ================= */
   return (
-    <Card className="p-6 border border-slate-100 shadow-sm rounded-xl bg-white">
+    <Card className="p-6 border shadow-sm rounded-xl bg-white">
+
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-xl font-bold text-slate-900">
+        <h2 className="text-xl font-bold">
           LEAVE TYPES & ENTITLEMENT
         </h2>
 
@@ -143,66 +186,63 @@ export default function LeaveManagementPage() {
       </div>
 
       {/* TABLE */}
-      <div className="bg-slate-50/50 rounded-xl border p-4 overflow-x-auto">
+      <div className="bg-slate-50 rounded-xl border p-4 overflow-x-auto">
         <div className="min-w-[700px]">
-          <div className="grid grid-cols-6 gap-4 px-4 py-2 text-xs font-bold text-slate-500 uppercase">
+
+          {/* HEADER */}
+          <div className="grid grid-cols-6 gap-4 px-4 py-2 text-xs font-bold text-slate-500">
             <div>Leave Type</div>
             <div className="text-center">Code</div>
             <div className="text-center">Entitlement</div>
-            <div className="text-center">Carry Forward</div>
-            <div className="text-center">Max Carry</div>
+            <div className="text-center">Carry</div>
+            <div className="text-center">Max</div>
             <div className="text-center">Actions</div>
           </div>
 
+          {/* ROWS */}
           <div className="space-y-3 mt-2">
             {data.map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-6 gap-4 items-center bg-white px-4 py-3 rounded-lg border border-slate-100"
+                className="grid grid-cols-6 gap-4 items-center bg-white px-4 py-3 rounded-lg border"
               >
                 <div className="font-semibold">{item.name}</div>
 
                 <Input
                   disabled={editingId !== item.id}
                   value={item.shortCode}
-                  onChange={(e) =>
-                    setData(
-                      data.map((i) =>
-                        i.id === item.id
-                          ? { ...i, shortCode: e.target.value }
-                          : i
-                      )
-                    )
-                  }
+                  onChange={(e) => {
+                    if (editingId !== item.id) return;
+                    updateField(item.id, "shortCode", e.target.value);
+                  }}
                 />
 
                 <Input
                   type="number"
                   disabled={editingId !== item.id}
                   value={item.entitlement}
-                  onChange={(e) =>
-                    setData(
-                      data.map((i) =>
-                        i.id === item.id
-                          ? { ...i, entitlement: e.target.value }
-                          : i
-                      )
-                    )
-                  }
+                  onChange={(e) => {
+                    if (editingId !== item.id) return;
+                    updateField(
+                      item.id,
+                      "entitlement",
+                      Number(e.target.value)
+                    );
+                  }}
                 />
 
                 <div className="flex justify-center">
                   <CustomToggle
                     checked={item.carryEnabled}
-                    onChange={() =>
-                      setData(
-                        data.map((i) =>
+                    onChange={() => {
+                      setData((prev) =>
+                        prev.map((i) =>
                           i.id === item.id
                             ? { ...i, carryEnabled: !i.carryEnabled }
                             : i
                         )
-                      )
-                    }
+                      );
+                    }}
                   />
                 </div>
 
@@ -210,15 +250,14 @@ export default function LeaveManagementPage() {
                   type="number"
                   disabled={!item.carryEnabled}
                   value={item.maxCarry}
-                  onChange={(e) =>
-                    setData(
-                      data.map((i) =>
-                        i.id === item.id
-                          ? { ...i, maxCarry: e.target.value }
-                          : i
-                      )
-                    )
-                  }
+                  onChange={(e) => {
+                    if (editingId !== item.id) return;
+                    updateField(
+                      item.id,
+                      "maxCarry",
+                      Number(e.target.value)
+                    );
+                  }}
                 />
 
                 <div className="flex justify-center gap-3">

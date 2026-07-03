@@ -4,15 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
-export default function FooterActions({ onSave, isLoading, onCancel }) {
+/* ================= TYPES ================= */
+type Props = {
+  onSave: () => Promise<void> | void;
+  isLoading: boolean;
+  onCancel?: () => void;
+};
+
+export default function FooterActions({
+  onSave,
+  isLoading,
+  onCancel,
+}: Props) {
 
   const handleSave = async () => {
     try {
-      if (!onSave) return;
-
-      await onSave(); // parent handles actual save
-
-      toast.success("Configuration saved successfully");
+      await onSave();
     } catch (error) {
       console.error(error);
       toast.error("Failed to save configuration");
@@ -22,7 +29,7 @@ export default function FooterActions({ onSave, isLoading, onCancel }) {
   const handleCancel = () => {
     try {
       onCancel?.();
-      toast("Action cancelled");
+      toast.info("Action cancelled");
     } catch (error) {
       console.error(error);
       toast.error("Cancel failed");
