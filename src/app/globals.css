@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  --color-primary: #2563eb; /* Blue */
+  --color-background: #f8fafc; /* Slate 50 */
+}
+
+@layer base {
+  body { @apply bg-background text-slate-900; }
+}
